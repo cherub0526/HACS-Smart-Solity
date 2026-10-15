@@ -21,7 +21,12 @@ from .coordinator import (
     SmartSolityRuntimeData,
 )
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.LOCK, Platform.SENSOR]
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    Platform.EVENT,
+    Platform.LOCK,
+    Platform.SENSOR,
+]
 
 
 def _timezone_param(hass: HomeAssistant) -> str:

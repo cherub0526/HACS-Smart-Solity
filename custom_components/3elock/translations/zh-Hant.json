@@ -48,9 +48,6 @@
       },
       "voice_level": {
         "name": "語音設定"
-      },
-      "last_activity": {
-        "name": "最近活動"
       }
     },
     "binary_sensor": {
@@ -89,6 +86,11 @@
       },
       "status_notification": {
         "name": "狀態通知"
+      }
+    },
+    "event": {
+      "activity": {
+        "name": "門鎖活動"
       }
     }
   }
