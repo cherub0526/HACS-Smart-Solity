@@ -17,7 +17,14 @@ from .api import (
     SmartSolityConnectionError,
     SmartSolityDevice,
 )
-from .const import DOMAIN, LOG_UPDATE_INTERVAL, UPDATE_INTERVAL, LOGGER
+from .const import (
+    CRED_UPDATE_INTERVAL,
+    CREDENTIAL_TYPES,
+    DOMAIN,
+    LOG_UPDATE_INTERVAL,
+    LOGGER,
+    UPDATE_INTERVAL,
+)
 
 
 class SmartSolityDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -95,6 +102,49 @@ class SmartSolityLogCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
             raise UpdateFailed(str(err)) from err
 
 
+class SmartSolityCredentialCoordinator(
+    DataUpdateCoordinator[dict[str, list[dict[str, Any]]]]
+):
+    """Coordinator that polls the named-credential lists (very slow)."""
+
+    config_entry: SmartSolityConfigEntry
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: SmartSolityConfigEntry,
+        api: SmartSolityApiClient,
+        device: SmartSolityDevice,
+    ) -> None:
+        """Initialize the credential coordinator."""
+        super().__init__(
+            hass,
+            LOGGER,
+            config_entry=config_entry,
+            name=f"{DOMAIN}_credentials",
+            update_interval=CRED_UPDATE_INTERVAL,
+        )
+        self.api = api
+        self.device = device
+
+    async def _async_update_data(self) -> dict[str, list[dict[str, Any]]]:
+        """Fetch each credential type's named entries."""
+        result: dict[str, list[dict[str, Any]]] = {}
+        try:
+            for key, addr_type in CREDENTIAL_TYPES.items():
+                entries = await self.api.get_nicknames(
+                    self.device.member_id, self.device.reg_device_id, addr_type
+                )
+                result[key] = [
+                    {"addr": e.get("addr"), "name": e.get("nickname")} for e in entries
+                ]
+        except SmartSolityAuthError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except (SmartSolityApiError, SmartSolityConnectionError) as err:
+            raise UpdateFailed(str(err)) from err
+        return result
+
+
 @dataclass
 class SmartSolityRuntimeData:
     """Everything the platforms need, stored on the config entry."""
@@ -102,6 +152,7 @@ class SmartSolityRuntimeData:
     device: SmartSolityDevice
     status: SmartSolityDataUpdateCoordinator
     logs: SmartSolityLogCoordinator
+    credentials: SmartSolityCredentialCoordinator
 
 
 type SmartSolityConfigEntry = ConfigEntry[SmartSolityRuntimeData]

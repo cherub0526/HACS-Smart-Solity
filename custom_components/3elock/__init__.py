@@ -16,6 +16,7 @@ from .api import (
 )
 from .coordinator import (
     SmartSolityConfigEntry,
+    SmartSolityCredentialCoordinator,
     SmartSolityDataUpdateCoordinator,
     SmartSolityLogCoordinator,
     SmartSolityRuntimeData,
@@ -55,11 +56,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: SmartSolityConfigEntry) 
 
     status = SmartSolityDataUpdateCoordinator(hass, entry, api, device)
     logs = SmartSolityLogCoordinator(hass, entry, api, device, _timezone_param(hass))
+    credentials = SmartSolityCredentialCoordinator(hass, entry, api, device)
 
-    entry.runtime_data = SmartSolityRuntimeData(device=device, status=status, logs=logs)
+    entry.runtime_data = SmartSolityRuntimeData(
+        device=device, status=status, logs=logs, credentials=credentials
+    )
 
     await status.async_config_entry_first_refresh()
     await logs.async_config_entry_first_refresh()
+    await credentials.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

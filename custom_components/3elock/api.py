@@ -44,6 +44,8 @@ class SmartSolityDevice:
     nickname: str
     maker_name: str
     model_name: str
+    member_id: str
+    reg_device_id: str
 
 
 class SmartSolityApiClient:
@@ -92,7 +94,18 @@ class SmartSolityApiClient:
             nickname=device["myDeviceNickName"],
             maker_name=device["myDeviceMakerName"],
             model_name=device["myDeviceModelName"],
+            member_id=device.get("myDeviceMemberId", ""),
+            reg_device_id=device.get("myDeviceRegDeviceId", ""),
         )
+
+    async def get_nicknames(
+        self, member_id: str, device_id: str, addr_type: int
+    ) -> list[dict[str, Any]]:
+        """Return the named credentials of one type (addrType)."""
+        body = {"memberId": member_id, "deviceId": device_id, "addrType": addr_type}
+        data = await self._authorized_request("POST", "/addrNickname", body)
+        contents = data.get("contents") or {}
+        return contents.get("nicknameList") or []
 
     async def get_device_status(self) -> dict[str, Any] | None:
         """Poll /myDevice and return the full device record (raw fields).

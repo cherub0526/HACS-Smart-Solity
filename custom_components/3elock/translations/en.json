@@ -58,6 +58,11 @@
       "activity": {
         "name": "Activity"
       }
+    },
+    "sensor": {
+      "credentials": {
+        "name": "Named credentials"
+      }
     }
   }
 }
