@@ -15,7 +15,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -54,20 +53,6 @@ BINARY_SENSORS: tuple[SmartSolityBinaryDescription, ...] = (
         value_fn=lambda d: d.get("lockerStatus") != "0",
     ),
     SmartSolityBinaryDescription(
-        key="gateway",
-        translation_key="gateway",
-        device_class=BinarySensorDeviceClass.CONNECTIVITY,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: _flag(d, "gatewayConnStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="firmware_update",
-        translation_key="firmware_update",
-        device_class=BinarySensorDeviceClass.UPDATE,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: _flag(d, "firmwareUpdateNeedYn"),
-    ),
-    SmartSolityBinaryDescription(
         key="keep_open",
         translation_key="keep_open",
         value_fn=lambda d: _flag(d, "keepOpenSetStatus"),
@@ -76,49 +61,6 @@ BINARY_SENSORS: tuple[SmartSolityBinaryDescription, ...] = (
         key="auto_lock",
         translation_key="auto_lock",
         value_fn=lambda d: _flag(d, "lockTimeSetStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="dual_auth",
-        translation_key="dual_auth",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: _flag(d, "dualAuthSetStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="double_close",
-        translation_key="double_close",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: _flag(d, "doubleCloseSetStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="buzzer",
-        translation_key="buzzer",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: _flag(d, "buzzerUseStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="fake_number",
-        translation_key="fake_number",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: _flag(d, "fakeNumberSetStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="sublatch",
-        translation_key="sublatch",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
-        value_fn=lambda d: _flag(d, "sublatchSetStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="event_notification",
-        translation_key="event_notification",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: _flag(d, "notiDoorEventSetStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="status_notification",
-        translation_key="status_notification",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: _flag(d, "notiDoorStatusSetStatus"),
     ),
 )
 

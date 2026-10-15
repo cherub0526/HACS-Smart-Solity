@@ -49,59 +49,15 @@
     }
   },
   "entity": {
-    "sensor": {
-      "firmware_version": {
-        "name": "韌體版本"
-      },
-      "connection_type": {
-        "name": "連線方式"
-      },
-      "security_level": {
-        "name": "安全等級"
-      },
-      "sound_level": {
-        "name": "音量等級"
-      },
-      "voice_level": {
-        "name": "語音設定"
-      }
-    },
     "binary_sensor": {
       "lock_state": {
         "name": "門鎖"
-      },
-      "gateway": {
-        "name": "閘道器"
-      },
-      "firmware_update": {
-        "name": "韌體更新"
       },
       "keep_open": {
         "name": "常開模式"
       },
       "auto_lock": {
         "name": "自動上鎖計時"
-      },
-      "dual_auth": {
-        "name": "雙重認證"
-      },
-      "double_close": {
-        "name": "二重鎖"
-      },
-      "buzzer": {
-        "name": "操作聲"
-      },
-      "fake_number": {
-        "name": "亂數密碼"
-      },
-      "sublatch": {
-        "name": "輔助鎖舌"
-      },
-      "event_notification": {
-        "name": "事件通知"
-      },
-      "status_notification": {
-        "name": "狀態通知"
       }
     },
     "event": {

@@ -43,39 +43,6 @@ SENSORS: tuple[SmartSolitySensorDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda d: _int(d.get("battery")),
     ),
-    SmartSolitySensorDescription(
-        key="firmware_version",
-        translation_key="firmware_version",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: d.get("fwVersion") or None,
-    ),
-    SmartSolitySensorDescription(
-        key="connection_type",
-        translation_key="connection_type",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda d: d.get("brokerType") or None,
-    ),
-    SmartSolitySensorDescription(
-        key="security_level",
-        translation_key="security_level",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
-        value_fn=lambda d: _int(d.get("securitySetStatus")),
-    ),
-    SmartSolitySensorDescription(
-        key="sound_level",
-        translation_key="sound_level",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
-        value_fn=lambda d: _int(d.get("soundSetStatus")),
-    ),
-    SmartSolitySensorDescription(
-        key="voice_level",
-        translation_key="voice_level",
-        entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
-        value_fn=lambda d: _int(d.get("voiceSetStatus")),
-    ),
 )
 
 
