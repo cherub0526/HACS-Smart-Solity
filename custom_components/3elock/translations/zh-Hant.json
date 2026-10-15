@@ -64,5 +64,25 @@
         "name": "已命名憑證"
       }
     }
+  },
+  "services": {
+    "create_one_time_password": {
+      "name": "建立一次性密碼",
+      "description": "在門鎖上建立一組一次性密碼，於指定的日期/時間區間內有效。",
+      "fields": {
+        "code": {
+          "name": "密碼",
+          "description": "一次性密碼數字（例如 123456）。"
+        },
+        "start": {
+          "name": "有效起始",
+          "description": "起始日期與小時（分鐘會被忽略）。"
+        },
+        "end": {
+          "name": "有效結束",
+          "description": "結束日期與小時（分鐘會被忽略）。"
+        }
+      }
+    }
   }
 }

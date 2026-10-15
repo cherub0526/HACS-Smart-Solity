@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import base64
 from dataclasses import dataclass
+from datetime import datetime
 import hashlib
 from typing import Any
 from urllib.parse import urlencode
@@ -146,21 +147,41 @@ class SmartSolityApiClient:
         contents = data.get("contents") or {}
         return contents.get("retrieveLogList") or []
 
-    async def lock(self, device_id: str) -> None:
-        """Lock the device (lockerStatus goes to '0')."""
+    async def control(
+        self, device_id: str, control_type: str, option_value: str = "1"
+    ) -> None:
+        """Send a controlDevice command relayed to the lock."""
         await self._authorized_request(
             "PUT",
             f"/controlDevice/{device_id}",
-            {"lang": "3", "appSource": "0", "optionValue": "1", "controlType": "close"},
+            {
+                "lang": "3",
+                "appSource": "0",
+                "optionValue": option_value,
+                "controlType": control_type,
+            },
         )
+
+    async def lock(self, device_id: str) -> None:
+        """Lock the device (lockerStatus goes to '0')."""
+        await self.control(device_id, "close", "1")
 
     async def unlock(self, device_id: str) -> None:
         """Unlock the device."""
-        await self._authorized_request(
-            "PUT",
-            f"/controlDevice/{device_id}",
-            {"lang": "3", "appSource": "0", "optionValue": "1", "controlType": "open"},
+        await self.control(device_id, "open", "1")
+
+    async def create_one_time_password(
+        self, device_id: str, code: str, start: datetime, end: datetime
+    ) -> None:
+        """Create a one-time password valid in a date/hour window (set_one_pwd).
+
+        optionValue format (verified from the app):
+          code/startDate(yyyyMMdd)/endDate(yyyyMMdd)/startHour(HH:00)/endHour(HH:00)
+        """
+        option = (
+            f"{code}/{start:%Y%m%d}/{end:%Y%m%d}/{start:%H}:00/{end:%H}:00"
         )
+        await self.control(device_id, "set_one_pwd", option)
 
     async def _authorized_request(
         self, method: str, path: str, payload: dict[str, str] | None = None

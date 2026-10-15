@@ -64,5 +64,25 @@
         "name": "Named credentials"
       }
     }
+  },
+  "services": {
+    "create_one_time_password": {
+      "name": "Create one-time password",
+      "description": "Create a one-time password on the lock, valid within a date/time window.",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "The one-time password digits (e.g. 123456)."
+        },
+        "start": {
+          "name": "Valid from",
+          "description": "Start date and hour (minutes are ignored)."
+        },
+        "end": {
+          "name": "Valid until",
+          "description": "End date and hour (minutes are ignored)."
+        }
+      }
+    }
   }
 }

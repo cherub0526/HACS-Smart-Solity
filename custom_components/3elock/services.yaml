@@ -1,0 +1,19 @@
+create_one_time_password:
+  target:
+    entity:
+      integration: 3elock
+      domain: lock
+  fields:
+    code:
+      required: true
+      example: "123456"
+      selector:
+        text:
+    start:
+      required: true
+      selector:
+        datetime:
+    end:
+      required: true
+      selector:
+        datetime:
