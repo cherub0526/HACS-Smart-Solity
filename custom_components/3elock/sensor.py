@@ -16,12 +16,7 @@ from homeassistant.const import PERCENTAGE, EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import CREDENTIAL_TYPES
-from .coordinator import (
-    SmartSolityConfigEntry,
-    SmartSolityCredentialCoordinator,
-    SmartSolityDataUpdateCoordinator,
-)
+from .coordinator import SmartSolityConfigEntry, SmartSolityDataUpdateCoordinator
 from .entity import SmartSolityEntity
 
 
@@ -57,12 +52,10 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the sensors."""
-    data = config_entry.runtime_data
-    entities: list[SensorEntity] = [
-        SmartSolitySensor(data.status, description) for description in SENSORS
-    ]
-    entities.append(SmartSolityCredentialsSensor(data.credentials))
-    async_add_entities(entities)
+    coordinator = config_entry.runtime_data.status
+    async_add_entities(
+        SmartSolitySensor(coordinator, description) for description in SENSORS
+    )
 
 
 class SmartSolitySensor(SmartSolityEntity, SensorEntity):
@@ -84,32 +77,3 @@ class SmartSolitySensor(SmartSolityEntity, SensorEntity):
     def native_value(self) -> Any:
         """Return the sensor value."""
         return self.entity_description.value_fn(self.coordinator.data)
-
-
-class SmartSolityCredentialsSensor(SmartSolityEntity, SensorEntity):
-    """Named credentials (passwords/cards/fingerprints/faces) as a read-only list.
-
-    State is the total number of *named* credentials; the per-type lists are in
-    the attributes. Credentials that exist on the lock but have no nickname set
-    in the app do not appear here.
-    """
-
-    _attr_translation_key = "credentials"
-    _attr_native_unit_of_measurement = "entries"
-
-    def __init__(self, coordinator: SmartSolityCredentialCoordinator) -> None:
-        """Initialize the credentials sensor."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.device.device_id}_credentials"
-
-    @property
-    def native_value(self) -> int:
-        """Return the total number of named credentials."""
-        data = self.coordinator.data or {}
-        return sum(len(v) for v in data.values())
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return the named entries grouped by credential type."""
-        data = self.coordinator.data or {}
-        return {key: data.get(key, []) for key in CREDENTIAL_TYPES}

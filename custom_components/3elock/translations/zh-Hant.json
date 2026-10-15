@@ -58,11 +58,6 @@
       "activity": {
         "name": "門鎖活動"
       }
-    },
-    "sensor": {
-      "credentials": {
-        "name": "已命名憑證"
-      }
     }
   },
   "services": {

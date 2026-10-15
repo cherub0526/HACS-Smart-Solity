@@ -8,7 +8,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.components.lock import LockEntity
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -48,26 +48,44 @@ class SmartSolityLock(SmartSolityEntity, LockEntity):
         """Initialize the lock."""
         super().__init__(coordinator)
         self._attr_unique_id = coordinator.device.device_id
+        # Optimistic state set right after a lock/unlock action; held until the
+        # polled device state catches up (confirms it), so the UI reacts instantly.
+        self._optimistic_locked: bool | None = None
 
     @property
     def is_locked(self) -> bool:
         """Return true if the lock is locked (lockerStatus == '0')."""
+        if self._optimistic_locked is not None:
+            return self._optimistic_locked
         return self.coordinator.data.get("lockerStatus") == "0"
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Clear the optimistic state once the server confirms the new value."""
+        if self._optimistic_locked is not None:
+            real_locked = self.coordinator.data.get("lockerStatus") == "0"
+            if real_locked == self._optimistic_locked:
+                self._optimistic_locked = None
+        super()._handle_coordinator_update()
+
     async def async_lock(self, **kwargs: Any) -> None:
-        """Lock the device."""
+        """Lock the device (optimistic: show locked immediately)."""
         try:
             await self.coordinator.api.lock(self.coordinator.device.device_id)
         except (SmartSolityApiError, SmartSolityConnectionError) as err:
             raise HomeAssistantError(str(err)) from err
+        self._optimistic_locked = True
+        self.async_write_ha_state()
         await self.coordinator.async_request_refresh()
 
     async def async_unlock(self, **kwargs: Any) -> None:
-        """Unlock the device."""
+        """Unlock the device (optimistic: show unlocked immediately)."""
         try:
             await self.coordinator.api.unlock(self.coordinator.device.device_id)
         except (SmartSolityApiError, SmartSolityConnectionError) as err:
             raise HomeAssistantError(str(err)) from err
+        self._optimistic_locked = False
+        self.async_write_ha_state()
         await self.coordinator.async_request_refresh()
 
     async def async_create_one_time_password(
