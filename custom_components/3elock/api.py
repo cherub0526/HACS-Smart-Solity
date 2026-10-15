@@ -12,6 +12,7 @@ import base64
 from dataclasses import dataclass
 import hashlib
 from typing import Any
+from urllib.parse import urlencode
 
 from aiohttp import ClientError, ClientSession
 
@@ -104,6 +105,25 @@ class SmartSolityApiClient:
             if data.get("result") != 0:
                 raise SmartSolityApiError(data.get("errorMessage") or "request failed")
         return data["contents"]["myDeviceList"][0]
+
+    async def get_logs(
+        self, device_id: str, length: int = 20, timezone: str = "+0:00"
+    ) -> list[dict[str, Any]]:
+        """Return the most recent access-log entries (newest first)."""
+        query = urlencode(
+            {
+                "pMemberId": "",
+                "pLogType": "",
+                "pLogStart": 0,
+                "pLogLength": length,
+                "pTimezone": timezone,
+            }
+        )
+        data = await self._authorized_request(
+            "GET", f"/retrieveLog/page/{device_id}?{query}"
+        )
+        contents = data.get("contents") or {}
+        return contents.get("retrieveLogList") or []
 
     async def lock(self, device_id: str) -> None:
         """Lock the device (lockerStatus goes to '0')."""

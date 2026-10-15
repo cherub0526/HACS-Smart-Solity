@@ -6,6 +6,7 @@ from homeassistant.const import CONF_PASSWORD, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.util import dt as dt_util
 
 from .api import (
     SmartSolityApiClient,
@@ -13,9 +14,23 @@ from .api import (
     SmartSolityAuthError,
     SmartSolityConnectionError,
 )
-from .coordinator import SmartSolityConfigEntry, SmartSolityDataUpdateCoordinator
+from .coordinator import (
+    SmartSolityConfigEntry,
+    SmartSolityDataUpdateCoordinator,
+    SmartSolityLogCoordinator,
+    SmartSolityRuntimeData,
+)
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.LOCK, Platform.SENSOR]
+
+
+def _timezone_param(hass: HomeAssistant) -> str:
+    """Build the pTimezone query value, e.g. '+8:00', from HA's local offset."""
+    offset = dt_util.now().utcoffset()
+    total = int(offset.total_seconds()) if offset else 0
+    sign = "+" if total >= 0 else "-"
+    total = abs(total)
+    return f"{sign}{total // 3600}:{(total % 3600) // 60:02d}"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: SmartSolityConfigEntry) -> bool:
@@ -29,9 +44,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: SmartSolityConfigEntry) 
     except (SmartSolityApiError, SmartSolityConnectionError) as err:
         raise ConfigEntryNotReady(str(err)) from err
 
-    coordinator = SmartSolityDataUpdateCoordinator(hass, entry, api, device)
-    entry.runtime_data = coordinator
-    await coordinator.async_config_entry_first_refresh()
+    status = SmartSolityDataUpdateCoordinator(hass, entry, api, device)
+    logs = SmartSolityLogCoordinator(hass, entry, api, device, _timezone_param(hass))
+
+    entry.runtime_data = SmartSolityRuntimeData(device=device, status=status, logs=logs)
+
+    await status.async_config_entry_first_refresh()
+    await logs.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

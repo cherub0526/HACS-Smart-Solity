@@ -129,7 +129,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the binary sensors."""
-    coordinator = config_entry.runtime_data
+    coordinator = config_entry.runtime_data.status
     async_add_entities(
         SmartSolityBinarySensor(coordinator, description)
         for description in BINARY_SENSORS

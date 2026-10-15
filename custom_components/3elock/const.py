@@ -11,3 +11,6 @@ LOGGER = logging.getLogger(__package__)
 
 # The app polls frequently; the server answers 304 when nothing changed.
 UPDATE_INTERVAL = timedelta(seconds=5)
+
+# The access log changes rarely and is a full (non-304) fetch, so poll slowly.
+LOG_UPDATE_INTERVAL = timedelta(seconds=60)

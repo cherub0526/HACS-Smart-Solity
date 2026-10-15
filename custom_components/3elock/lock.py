@@ -20,7 +20,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the lock entity."""
-    async_add_entities([SmartSolityLock(config_entry.runtime_data)])
+    async_add_entities([SmartSolityLock(config_entry.runtime_data.status)])
 
 
 class SmartSolityLock(SmartSolityEntity, LockEntity):

@@ -48,6 +48,9 @@
       },
       "voice_level": {
         "name": "語音設定"
+      },
+      "last_activity": {
+        "name": "最近活動"
       }
     },
     "binary_sensor": {

@@ -48,6 +48,9 @@
       },
       "voice_level": {
         "name": "Voice level"
+      },
+      "last_activity": {
+        "name": "Last activity"
       }
     },
     "binary_sensor": {
