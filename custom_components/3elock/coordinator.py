@@ -1,47 +1,62 @@
-"""Data update coordinator for Smart Solity."""
+"""DataUpdateCoordinator for the 3elock integration."""
 
 from __future__ import annotations
 
-import logging
-from typing import Any
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import SmartSolityApi, SmartSolityAuthError, SmartSolityError
-from .const import DOMAIN, SCAN_INTERVAL
+from .api import (
+    SmartSolityApiClient,
+    SmartSolityApiError,
+    SmartSolityAuthError,
+    SmartSolityConnectionError,
+    SmartSolityDevice,
+    SmartSolityStatus,
+)
+from .const import DOMAIN, LOGGER, UPDATE_INTERVAL
 
-_LOGGER = logging.getLogger(__name__)
+type SmartSolityConfigEntry = ConfigEntry[SmartSolityDataUpdateCoordinator]
 
 
-class SmartSolityCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
-    """Polls /api_v2/myDevice and exposes devices keyed by myDeviceId."""
+class SmartSolityDataUpdateCoordinator(DataUpdateCoordinator[SmartSolityStatus]):
+    """Coordinator that polls the lock status."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, api: SmartSolityApi) -> None:
+    config_entry: SmartSolityConfigEntry
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: SmartSolityConfigEntry,
+        api: SmartSolityApiClient,
+        device: SmartSolityDevice,
+    ) -> None:
+        """Initialize the coordinator."""
         super().__init__(
             hass,
-            _LOGGER,
+            LOGGER,
+            config_entry=config_entry,
             name=DOMAIN,
-            update_interval=SCAN_INTERVAL,
-            config_entry=entry,
+            update_interval=UPDATE_INTERVAL,
         )
         self.api = api
+        self.device = device
 
-    async def _async_update_data(self) -> dict[str, dict[str, Any]]:
+    async def _async_update_data(self) -> SmartSolityStatus:
+        """Poll for a lock status change.
+
+        The API responds with HTTP 304 when nothing has changed since the
+        last poll, in which case the previous status is kept as-is.
+        """
         try:
-            devices = await self.api.get_devices()
+            status = await self.api.get_device_status()
         except SmartSolityAuthError as err:
-            # Let HA trigger reauth.
-            from homeassistant.exceptions import ConfigEntryAuthFailed
-
             raise ConfigEntryAuthFailed(str(err)) from err
-        except SmartSolityError as err:
+        except (SmartSolityApiError, SmartSolityConnectionError) as err:
             raise UpdateFailed(str(err)) from err
-
-        result: dict[str, dict[str, Any]] = {}
-        for dev in devices:
-            device_id = dev.get("myDeviceId")
-            if device_id:
-                result[str(device_id)] = dev
-        return result
+        if status is None:
+            if self.data is None:
+                raise UpdateFailed("myDevice reported no change on the initial poll")
+            return self.data
+        return status

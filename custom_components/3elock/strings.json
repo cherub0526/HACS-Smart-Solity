@@ -3,33 +3,33 @@
     "step": {
       "user": {
         "title": "3elock",
-        "description": "Sign in with your Smart Solity account.",
+        "description": "Enter the 6-digit app password shown in the Solity app.",
         "data": {
-          "email": "Email",
-          "password": "Password"
+          "password": "App password"
         },
         "data_description": {
-          "password": "Your Smart Solity account password (set at first login / sign-up) — not the 6-digit app-lock PIN."
+          "password": "The 6-digit app password shown in the Solity app (e.g. 042636)."
+        }
+      },
+      "reauth_confirm": {
+        "title": "3elock",
+        "description": "Re-enter the 6-digit app password.",
+        "data": {
+          "password": "App password"
+        },
+        "data_description": {
+          "password": "The 6-digit app password shown in the Solity app."
         }
       }
     },
     "error": {
-      "invalid_auth": "Invalid email or password.",
-      "cannot_connect": "Failed to connect to the Smart Solity server.",
-      "unknown": "Unexpected error."
+      "invalid_auth": "Invalid app password.",
+      "cannot_connect": "Failed to connect to the Solity server."
     },
     "abort": {
-      "already_configured": "This account is already configured."
-    }
-  },
-  "entity": {
-    "sensor": {
-      "firmware": {
-        "name": "Firmware version"
-      },
-      "gateway": {
-        "name": "Gateway connection"
-      }
+      "already_configured": "This device is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "unique_id_mismatch": "Re-authentication should be used for the same device, not a new one."
     }
   }
 }

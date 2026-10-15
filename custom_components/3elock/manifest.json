@@ -4,10 +4,10 @@
   "codeowners": ["@cherub0526"],
   "config_flow": true,
   "documentation": "https://github.com/cherub0526/HACS-Smart-Solity",
-  "integration_type": "hub",
+  "integration_type": "device",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/cherub0526/HACS-Smart-Solity/issues",
   "loggers": ["custom_components.3elock"],
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

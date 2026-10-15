@@ -1,174 +1,174 @@
-"""Async client for the Smart Solity cloud API.
+"""API client for the Solity / 3elock cloud service.
 
-Reverse-engineered from the Smart Solity Android app. The request/response
-shapes come from the app's Retrofit services and Gson models:
-  - Res<T>      = {result, errorMessage, contentsmyDeviceMessage, contents}
-  - LoginBean   = {token, tokenPwd, loginResult, loginMessage, memberInfo}
-  - MyDeviceBean= {myDeviceList: [...], myDeviceListCount}
-  - ControlResult = {controlDeviceResult, controlDeviceMessage}
+Login model verified against the production server: the 6-digit app password
+is used as emailId + phoneToken, and hashedPwd = base64(sha256(password)),
+with appSource="0" and lang="3". Success is contents.loginResult == 0.
 """
 
 from __future__ import annotations
 
+import asyncio
 import base64
+from dataclasses import dataclass
 import hashlib
-import logging
-from typing import Any
 
-import aiohttp
+from aiohttp import ClientError, ClientSession
 
-from .const import (
-    BASE_URL,
-    DEFAULT_APP_SOURCE,
-    DEFAULT_LANG,
-    HEADER_AUTH,
-    HEADER_AUTH_PWD,
-    PATH_CONTROL_DEVICE,
-    PATH_LOGIN,
-    PATH_MY_DEVICE,
-    READ_TIMEOUT,
-    RESULT_OK,
-)
-
-_LOGGER = logging.getLogger(__name__)
+BASE_URL = "https://www.smartsolity.com/api_v2"
+REQUEST_TIMEOUT = 10
 
 
 class SmartSolityError(Exception):
-    """Generic API error with the server's result code / message."""
-
-    def __init__(self, message: str, result: int | None = None) -> None:
-        super().__init__(message)
-        self.result = result
+    """Base error for the 3elock API client."""
 
 
 class SmartSolityAuthError(SmartSolityError):
-    """Authentication failed or the session token is no longer valid."""
+    """Raised when login, or a relogin attempt, fails."""
 
 
-def hash_password(password: str) -> str:
-    """Reproduce EncryptUtils.encryptSHA256: base64(sha256(utf8(password))).
-
-    The app uses Base64.encodeToString(digest, NO_WRAP), NOT hex.
-    """
-    digest = hashlib.sha256(password.encode("utf-8")).digest()
-    return base64.b64encode(digest).decode("ascii")
+class SmartSolityApiError(SmartSolityError):
+    """Raised when an authenticated call keeps failing after a successful relogin."""
 
 
-class SmartSolityApi:
-    """Thin async wrapper over the Smart Solity /api_v2 endpoints."""
+class SmartSolityConnectionError(SmartSolityError):
+    """Raised when the API cannot be reached."""
 
-    def __init__(
-        self,
-        session: aiohttp.ClientSession,
-        email: str,
-        password: str,
-        *,
-        app_source: str = DEFAULT_APP_SOURCE,
-        lang: str = DEFAULT_LANG,
-        phone_token: str = "",
-    ) -> None:
+
+@dataclass
+class SmartSolityDevice:
+    """Static metadata for a Solity lock device."""
+
+    device_id: str
+    nickname: str
+    maker_name: str
+    model_name: str
+
+
+@dataclass
+class SmartSolityStatus:
+    """Live status of a Solity lock device."""
+
+    is_locked: bool
+    battery: int
+
+
+class SmartSolityApiClient:
+    """Client for the smartsolity.com cloud API."""
+
+    def __init__(self, session: ClientSession, password: str) -> None:
+        """Initialize the client. `password` is the 6-digit app password."""
         self._session = session
-        self._email = email
-        self._hashed_pwd = hash_password(password)
-        self._app_source = app_source
-        self._lang = lang
-        self._phone_token = phone_token
+        self._password = password
         self._token: str | None = None
-        self._token_pwd: str | None = None
 
-    @property
-    def token(self) -> str | None:
-        return self._token
-
-    async def login(self) -> dict[str, Any]:
-        """POST /api_v2/login. Stores token + tokenPwd on success."""
-        body = {
-            "emailId": self._email,
-            "hashedPwd": self._hashed_pwd,
-            "phoneToken": self._phone_token,
-            "appSource": self._app_source,
-            "lang": self._lang,
+    async def login(self) -> None:
+        """Log in and store the session token."""
+        hashed_pwd = base64.b64encode(
+            hashlib.sha256(self._password.encode()).digest()
+        ).decode()
+        payload = {
+            "phoneToken": self._password,
+            "hashedPwd": hashed_pwd,
+            "appSource": "0",
+            "emailId": self._password,
+            "lang": "3",
         }
-        contents = await self._request("POST", PATH_LOGIN, json=body, auth=False)
-        self._token = contents.get("token")
-        self._token_pwd = contents.get("tokenPwd")
-        if not self._token:
-            raise SmartSolityAuthError("Login succeeded but no token was returned")
-        return contents
+        data = await self._request("POST", "/login", payload)
+        contents = data.get("contents") or {}
+        if data.get("result") != 0 or contents.get("loginResult") != 0:
+            raise SmartSolityAuthError(
+                contents.get("loginMessage") or "invalid credentials"
+            )
+        self._token = contents["token"]
 
-    async def get_devices(self) -> list[dict[str, Any]]:
-        """GET /api_v2/myDevice -> list of MyDeviceList dicts."""
-        contents = await self._request("GET", PATH_MY_DEVICE)
-        devices = contents.get("myDeviceList") or []
-        if not isinstance(devices, list):
-            raise SmartSolityError("Unexpected myDeviceList shape")
-        return devices
+    async def get_my_device(self) -> SmartSolityDevice:
+        """Return the single lock device registered to this account."""
+        data = await self._authorized_request("GET", "/myDevice")
+        device = data["contents"]["myDeviceList"][0]
+        return SmartSolityDevice(
+            device_id=device["myDeviceId"],
+            nickname=device["myDeviceNickName"],
+            maker_name=device["myDeviceMakerName"],
+            model_name=device["myDeviceModelName"],
+        )
 
-    async def control(
-        self, my_device_id: str, control_type: str, option_value: str = "1"
-    ) -> dict[str, Any]:
-        """PUT /api_v2/controlDevice/{id} with {controlType, optionValue}."""
-        path = PATH_CONTROL_DEVICE.format(my_device_id=my_device_id)
-        body = {"controlType": control_type, "optionValue": option_value}
-        return await self._request("PUT", path, json=body)
+    async def get_device_status(self) -> SmartSolityStatus | None:
+        """Poll /myDevice for the current lock/battery status.
+
+        The API responds with HTTP 304 when nothing has changed since the
+        last poll, in which case None is returned.
+        """
+        if self._token is None:
+            await self.login()
+        data = await self._get_my_device_conditional()
+        if data is None:
+            return None
+        if data.get("result") != 0:
+            await self.login()
+            data = await self._get_my_device_conditional()
+            if data is None:
+                return None
+            if data.get("result") != 0:
+                raise SmartSolityApiError(data.get("errorMessage") or "request failed")
+        device = data["contents"]["myDeviceList"][0]
+        return SmartSolityStatus(
+            is_locked=device["lockerStatus"] == "0", battery=device["battery"]
+        )
+
+    async def lock(self, device_id: str) -> None:
+        """Lock the device (lockerStatus goes to '0')."""
+        await self._authorized_request(
+            "PUT",
+            f"/controlDevice/{device_id}",
+            {"lang": "3", "appSource": "0", "optionValue": "1", "controlType": "close"},
+        )
+
+    async def unlock(self, device_id: str) -> None:
+        """Unlock the device."""
+        await self._authorized_request(
+            "PUT",
+            f"/controlDevice/{device_id}",
+            {"lang": "3", "appSource": "0", "optionValue": "1", "controlType": "open"},
+        )
+
+    async def _authorized_request(
+        self, method: str, path: str, payload: dict[str, str] | None = None
+    ) -> dict:
+        """Make an authenticated request, retrying once after a fresh login."""
+        if self._token is None:
+            await self.login()
+        data = await self._request(method, path, payload)
+        if data.get("result") != 0:
+            await self.login()
+            data = await self._request(method, path, payload)
+            if data.get("result") != 0:
+                raise SmartSolityApiError(data.get("errorMessage") or "request failed")
+        return data
 
     async def _request(
-        self,
-        method: str,
-        path: str,
-        *,
-        json: dict[str, Any] | None = None,
-        params: dict[str, Any] | None = None,
-        auth: bool = True,
-        _retry: bool = True,
-    ) -> dict[str, Any]:
-        """Perform a request and unwrap the Res<T> envelope -> contents.
-
-        On an auth failure for an authenticated call, re-login once and retry.
-        """
-        headers = {"Connection": "close"}
-        if auth:
-            if not self._token:
-                await self.login()
-            headers[HEADER_AUTH] = self._token or ""
-            if self._token_pwd:
-                headers[HEADER_AUTH_PWD] = self._token_pwd
-
-        url = f"{BASE_URL}{path}"
-        timeout = aiohttp.ClientTimeout(total=READ_TIMEOUT)
+        self, method: str, path: str, payload: dict[str, str] | None = None
+    ) -> dict:
+        """Make a single request to the API."""
+        headers = {"Authorization": self._token} if self._token else {}
         try:
-            async with self._session.request(
-                method, url, json=json, params=params, headers=headers, timeout=timeout
-            ) as resp:
-                text = await resp.text()
-                if resp.status in (401, 403):
-                    if auth and _retry:
-                        await self.login()
-                        return await self._request(
-                            method, path, json=json, params=params, auth=auth, _retry=False
-                        )
-                    raise SmartSolityAuthError(f"HTTP {resp.status}: {text[:200]}")
-                resp.raise_for_status()
-                data = await resp.json(content_type=None)
-        except aiohttp.ClientError as err:
-            raise SmartSolityError(f"Network error calling {path}: {err}") from err
-
-        if not isinstance(data, dict):
-            raise SmartSolityError(f"Unexpected response from {path}: {data!r}")
-
-        result = data.get("result")
-        contents = data.get("contents")
-        if result is not None and result != RESULT_OK:
-            message = data.get("errorMessage") or data.get("contentsmyDeviceMessage") or ""
-            # A non-zero result on an authenticated call often means a stale token.
-            if auth and _retry and result in (401, 403):
-                await self.login()
-                return await self._request(
-                    method, path, json=json, params=params, auth=auth, _retry=False
+            async with asyncio.timeout(REQUEST_TIMEOUT):
+                response = await self._session.request(
+                    method, f"{BASE_URL}{path}", json=payload, headers=headers
                 )
-            raise SmartSolityError(f"API result={result} for {path}: {message}", result)
+                return await response.json(content_type=None)
+        except (TimeoutError, ClientError) as err:
+            raise SmartSolityConnectionError(str(err)) from err
 
-        # contents may be the payload object, or absent for simple acks.
-        if isinstance(contents, dict):
-            return contents
-        return data
+    async def _get_my_device_conditional(self) -> dict | None:
+        """GET /myDevice, returning None when the server responds 304 Not Modified."""
+        headers = {"Authorization": self._token} if self._token else {}
+        try:
+            async with asyncio.timeout(REQUEST_TIMEOUT):
+                response = await self._session.request(
+                    "GET", f"{BASE_URL}/myDevice", headers=headers
+                )
+                if response.status == 304:
+                    return None
+                return await response.json(content_type=None)
+        except (TimeoutError, ClientError) as err:
+            raise SmartSolityConnectionError(str(err)) from err

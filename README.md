@@ -19,7 +19,7 @@ This repo is not in the HACS default store, so add it as a **custom repository**
 3. Find **Smart Solity** in HACS → **Download**.
 4. **Restart Home Assistant**.
 5. Settings → Devices & Services → **Add Integration** → "Smart Solity".
-6. Enter the same email + password you use in the Smart Solity app.
+6. Enter the **6-digit app password** shown in the Solity app (e.g. 042636).
 
 You can also open HACS pre-filled with:
 [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cherub0526&repository=HACS-Smart-Solity&category=integration)
@@ -29,7 +29,7 @@ You can also open HACS pre-filled with:
 1. Copy `custom_components/3elock/` into your HA `config/custom_components/`.
 2. Restart Home Assistant.
 3. Settings → Devices & Services → **Add Integration** → "Smart Solity".
-4. Enter the same email + password you use in the Smart Solity app.
+4. Enter the **6-digit app password** shown in the Solity app (e.g. 042636).
 
 ## Entities
 
