@@ -7,6 +7,9 @@
         "data": {
           "email": "Email",
           "password": "Password"
+        },
+        "data_description": {
+          "password": "Your Smart Solity app login password (the 6-digit PIN, e.g. 042636)."
         }
       }
     },

@@ -7,6 +7,9 @@
         "data": {
           "email": "電子郵件",
           "password": "密碼"
+        },
+        "data_description": {
+          "password": "你的 Smart Solity App 登入密碼（6 位數 PIN，例如 042636）。"
         }
       }
     },
