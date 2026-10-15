@@ -52,12 +52,6 @@
     "binary_sensor": {
       "lock_state": {
         "name": "門鎖"
-      },
-      "keep_open": {
-        "name": "常開模式"
-      },
-      "auto_lock": {
-        "name": "自動上鎖計時"
       }
     },
     "event": {

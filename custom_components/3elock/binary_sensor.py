@@ -21,20 +21,6 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .coordinator import SmartSolityConfigEntry, SmartSolityDataUpdateCoordinator
 from .entity import SmartSolityEntity
 
-_ON = {"Y", "1"}
-_OFF = {"N", "0"}
-
-
-def _flag(dev: dict[str, Any], key: str) -> bool | None:
-    """Interpret a Y/N or 1/0 flag as on/off."""
-    value = dev.get(key)
-    text = str(value).strip().upper() if value is not None else ""
-    if text in _ON:
-        return True
-    if text in _OFF:
-        return False
-    return None
-
 
 @dataclass(frozen=True, kw_only=True)
 class SmartSolityBinaryDescription(BinarySensorEntityDescription):
@@ -51,16 +37,6 @@ BINARY_SENSORS: tuple[SmartSolityBinaryDescription, ...] = (
         translation_key="lock_state",
         device_class=BinarySensorDeviceClass.LOCK,
         value_fn=lambda d: d.get("lockerStatus") != "0",
-    ),
-    SmartSolityBinaryDescription(
-        key="keep_open",
-        translation_key="keep_open",
-        value_fn=lambda d: _flag(d, "keepOpenSetStatus"),
-    ),
-    SmartSolityBinaryDescription(
-        key="auto_lock",
-        translation_key="auto_lock",
-        value_fn=lambda d: _flag(d, "lockTimeSetStatus"),
     ),
 )
 
