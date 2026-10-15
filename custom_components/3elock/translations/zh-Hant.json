@@ -3,6 +3,13 @@
     "step": {
       "user": {
         "title": "小島3E",
+        "menu_options": {
+          "pin": "6 位數 PIN",
+          "email": "Email + 密碼"
+        }
+      },
+      "pin": {
+        "title": "6 位數 PIN",
         "description": "輸入 Solity app 裡顯示的 6 位數 app 密碼。",
         "data": {
           "password": "App 密碼"
@@ -11,19 +18,28 @@
           "password": "Solity app 裡的 6 位數 app 密碼（例如 042636）。"
         }
       },
-      "reauth_confirm": {
-        "title": "小島3E",
-        "description": "重新輸入 6 位數 app 密碼。",
+      "email": {
+        "title": "Email + 密碼",
+        "description": "使用你的 Solity 帳號登入。",
         "data": {
-          "password": "App 密碼"
+          "username": "電子郵件",
+          "password": "密碼"
+        }
+      },
+      "reauth_confirm": {
+        "title": "重新驗證",
+        "description": "重新輸入此裝置的登入資訊。",
+        "data": {
+          "username": "電子郵件",
+          "password": "密碼"
         },
         "data_description": {
-          "password": "Solity app 裡的 6 位數 app 密碼。"
+          "password": "PIN 帳號請輸入 6 位數 app 密碼。"
         }
       }
     },
     "error": {
-      "invalid_auth": "app 密碼錯誤。",
+      "invalid_auth": "登入資訊錯誤。",
       "cannot_connect": "無法連線到 Solity 伺服器。"
     },
     "abort": {

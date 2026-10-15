@@ -3,6 +3,13 @@
     "step": {
       "user": {
         "title": "3elock",
+        "menu_options": {
+          "pin": "6-digit PIN",
+          "email": "Email + password"
+        }
+      },
+      "pin": {
+        "title": "6-digit PIN",
         "description": "Enter the 6-digit app password shown in the Solity app.",
         "data": {
           "password": "App password"
@@ -11,19 +18,28 @@
           "password": "The 6-digit app password shown in the Solity app (e.g. 042636)."
         }
       },
-      "reauth_confirm": {
-        "title": "3elock",
-        "description": "Re-enter the 6-digit app password.",
+      "email": {
+        "title": "Email + password",
+        "description": "Sign in with your Solity account.",
         "data": {
-          "password": "App password"
+          "username": "Email",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "Re-enter the credentials for this device.",
+        "data": {
+          "username": "Email",
+          "password": "Password"
         },
         "data_description": {
-          "password": "The 6-digit app password shown in the Solity app."
+          "password": "For a PIN account, enter the 6-digit app password."
         }
       }
     },
     "error": {
-      "invalid_auth": "Invalid app password.",
+      "invalid_auth": "Invalid credentials.",
       "cannot_connect": "Failed to connect to the Solity server."
     },
     "abort": {

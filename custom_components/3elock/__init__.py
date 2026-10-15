@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from homeassistant.const import CONF_PASSWORD, Platform
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -40,7 +40,11 @@ def _timezone_param(hass: HomeAssistant) -> str:
 
 async def async_setup_entry(hass: HomeAssistant, entry: SmartSolityConfigEntry) -> bool:
     """Set up 3elock from a config entry."""
-    api = SmartSolityApiClient(async_get_clientsession(hass), entry.data[CONF_PASSWORD])
+    api = SmartSolityApiClient(
+        async_get_clientsession(hass),
+        entry.data[CONF_USERNAME],
+        entry.data[CONF_PASSWORD],
+    )
     try:
         await api.login()
         device = await api.get_my_device()

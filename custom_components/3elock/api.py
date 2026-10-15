@@ -49,9 +49,17 @@ class SmartSolityDevice:
 class SmartSolityApiClient:
     """Client for the smartsolity.com cloud API."""
 
-    def __init__(self, session: ClientSession, password: str) -> None:
-        """Initialize the client. `password` is the 6-digit app password."""
+    def __init__(
+        self, session: ClientSession, identifier: str, password: str
+    ) -> None:
+        """Initialize the client.
+
+        `identifier` is the login id (the account email, or the 6-digit app
+        password itself in PIN mode). `password` is hashed for `hashedPwd`;
+        in PIN mode it equals the identifier.
+        """
         self._session = session
+        self._identifier = identifier
         self._password = password
         self._token: str | None = None
 
@@ -61,10 +69,10 @@ class SmartSolityApiClient:
             hashlib.sha256(self._password.encode()).digest()
         ).decode()
         payload = {
-            "phoneToken": self._password,
+            "phoneToken": self._identifier,
             "hashedPwd": hashed_pwd,
             "appSource": "0",
-            "emailId": self._password,
+            "emailId": self._identifier,
             "lang": "3",
         }
         data = await self._request("POST", "/login", payload)
