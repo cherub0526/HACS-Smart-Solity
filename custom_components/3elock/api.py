@@ -11,6 +11,7 @@ import asyncio
 import base64
 from dataclasses import dataclass
 import hashlib
+from typing import Any
 
 from aiohttp import ClientError, ClientSession
 
@@ -42,14 +43,6 @@ class SmartSolityDevice:
     nickname: str
     maker_name: str
     model_name: str
-
-
-@dataclass
-class SmartSolityStatus:
-    """Live status of a Solity lock device."""
-
-    is_locked: bool
-    battery: int
 
 
 class SmartSolityApiClient:
@@ -92,8 +85,8 @@ class SmartSolityApiClient:
             model_name=device["myDeviceModelName"],
         )
 
-    async def get_device_status(self) -> SmartSolityStatus | None:
-        """Poll /myDevice for the current lock/battery status.
+    async def get_device_status(self) -> dict[str, Any] | None:
+        """Poll /myDevice and return the full device record (raw fields).
 
         The API responds with HTTP 304 when nothing has changed since the
         last poll, in which case None is returned.
@@ -110,10 +103,7 @@ class SmartSolityApiClient:
                 return None
             if data.get("result") != 0:
                 raise SmartSolityApiError(data.get("errorMessage") or "request failed")
-        device = data["contents"]["myDeviceList"][0]
-        return SmartSolityStatus(
-            is_locked=device["lockerStatus"] == "0", battery=device["battery"]
-        )
+        return data["contents"]["myDeviceList"][0]
 
     async def lock(self, device_id: str) -> None:
         """Lock the device (lockerStatus goes to '0')."""

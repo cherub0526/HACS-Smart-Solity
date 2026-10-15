@@ -15,7 +15,7 @@ from .api import (
 )
 from .coordinator import SmartSolityConfigEntry, SmartSolityDataUpdateCoordinator
 
-PLATFORMS: list[Platform] = [Platform.LOCK, Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.LOCK, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: SmartSolityConfigEntry) -> bool:

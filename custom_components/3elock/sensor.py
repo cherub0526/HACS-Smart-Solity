@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
+    SensorEntityDescription,
     SensorStateClass,
 )
 from homeassistant.const import PERCENTAGE, EntityCategory
@@ -15,29 +20,93 @@ from .coordinator import SmartSolityConfigEntry, SmartSolityDataUpdateCoordinato
 from .entity import SmartSolityEntity
 
 
+@dataclass(frozen=True, kw_only=True)
+class SmartSolitySensorDescription(SensorEntityDescription):
+    """Describes a sensor derived from a myDevice field."""
+
+    value_fn: Callable[[dict[str, Any]], Any]
+
+
+def _int(value: Any) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+SENSORS: tuple[SmartSolitySensorDescription, ...] = (
+    SmartSolitySensorDescription(
+        key="battery",
+        device_class=SensorDeviceClass.BATTERY,
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: _int(d.get("battery")),
+    ),
+    SmartSolitySensorDescription(
+        key="firmware_version",
+        translation_key="firmware_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.get("fwVersion") or None,
+    ),
+    SmartSolitySensorDescription(
+        key="connection_type",
+        translation_key="connection_type",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.get("brokerType") or None,
+    ),
+    SmartSolitySensorDescription(
+        key="security_level",
+        translation_key="security_level",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda d: _int(d.get("securitySetStatus")),
+    ),
+    SmartSolitySensorDescription(
+        key="sound_level",
+        translation_key="sound_level",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda d: _int(d.get("soundSetStatus")),
+    ),
+    SmartSolitySensorDescription(
+        key="voice_level",
+        translation_key="voice_level",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda d: _int(d.get("voiceSetStatus")),
+    ),
+)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: SmartSolityConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the battery sensor."""
-    async_add_entities([SmartSolityBatterySensor(config_entry.runtime_data)])
+    """Set up the sensors."""
+    coordinator = config_entry.runtime_data
+    async_add_entities(
+        SmartSolitySensor(coordinator, description) for description in SENSORS
+    )
 
 
-class SmartSolityBatterySensor(SmartSolityEntity, SensorEntity):
-    """Battery sensor for a Solity lock."""
+class SmartSolitySensor(SmartSolityEntity, SensorEntity):
+    """A single value read from the myDevice record."""
 
-    _attr_device_class = SensorDeviceClass.BATTERY
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    entity_description: SmartSolitySensorDescription
 
-    def __init__(self, coordinator: SmartSolityDataUpdateCoordinator) -> None:
+    def __init__(
+        self,
+        coordinator: SmartSolityDataUpdateCoordinator,
+        description: SmartSolitySensorDescription,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.device.device_id}_battery"
+        self.entity_description = description
+        self._attr_unique_id = f"{coordinator.device.device_id}_{description.key}"
 
     @property
-    def native_value(self) -> int:
-        """Return the battery percentage."""
-        return self.coordinator.data.battery
+    def native_value(self) -> Any:
+        """Return the sensor value."""
+        return self.entity_description.value_fn(self.coordinator.data)

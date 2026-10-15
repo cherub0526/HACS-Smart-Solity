@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -13,14 +15,13 @@ from .api import (
     SmartSolityAuthError,
     SmartSolityConnectionError,
     SmartSolityDevice,
-    SmartSolityStatus,
 )
 from .const import DOMAIN, LOGGER, UPDATE_INTERVAL
 
 type SmartSolityConfigEntry = ConfigEntry[SmartSolityDataUpdateCoordinator]
 
 
-class SmartSolityDataUpdateCoordinator(DataUpdateCoordinator[SmartSolityStatus]):
+class SmartSolityDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator that polls the lock status."""
 
     config_entry: SmartSolityConfigEntry
@@ -43,7 +44,7 @@ class SmartSolityDataUpdateCoordinator(DataUpdateCoordinator[SmartSolityStatus])
         self.api = api
         self.device = device
 
-    async def _async_update_data(self) -> SmartSolityStatus:
+    async def _async_update_data(self) -> dict[str, Any]:
         """Poll for a lock status change.
 
         The API responds with HTTP 304 when nothing has changed since the

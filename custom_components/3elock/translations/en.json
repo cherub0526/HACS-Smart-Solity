@@ -31,5 +31,62 @@
       "reauth_successful": "Re-authentication was successful.",
       "unique_id_mismatch": "Re-authentication should be used for the same device, not a new one."
     }
+  },
+  "entity": {
+    "sensor": {
+      "firmware_version": {
+        "name": "Firmware version"
+      },
+      "connection_type": {
+        "name": "Connection type"
+      },
+      "security_level": {
+        "name": "Security level"
+      },
+      "sound_level": {
+        "name": "Sound level"
+      },
+      "voice_level": {
+        "name": "Voice level"
+      }
+    },
+    "binary_sensor": {
+      "lock_state": {
+        "name": "Lock"
+      },
+      "gateway": {
+        "name": "Gateway"
+      },
+      "firmware_update": {
+        "name": "Firmware update"
+      },
+      "keep_open": {
+        "name": "Keep open"
+      },
+      "auto_lock": {
+        "name": "Auto-lock timer"
+      },
+      "dual_auth": {
+        "name": "Dual authentication"
+      },
+      "double_close": {
+        "name": "Double lock"
+      },
+      "buzzer": {
+        "name": "Buzzer"
+      },
+      "fake_number": {
+        "name": "Fake PIN entry"
+      },
+      "sublatch": {
+        "name": "Sub-latch"
+      },
+      "event_notification": {
+        "name": "Event notifications"
+      },
+      "status_notification": {
+        "name": "Status notifications"
+      }
+    }
   }
 }

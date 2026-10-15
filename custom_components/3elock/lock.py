@@ -36,7 +36,7 @@ class SmartSolityLock(SmartSolityEntity, LockEntity):
     @property
     def is_locked(self) -> bool:
         """Return true if the lock is locked (lockerStatus == '0')."""
-        return self.coordinator.data.is_locked
+        return self.coordinator.data.get("lockerStatus") == "0"
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the device."""
