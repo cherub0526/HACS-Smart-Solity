@@ -9,7 +9,7 @@
           "password": "Password"
         },
         "data_description": {
-          "password": "Your Smart Solity app login password (the 6-digit PIN, e.g. 042636)."
+          "password": "Your Smart Solity account password (set at first login / sign-up) — not the 6-digit app-lock PIN."
         }
       }
     },
@@ -24,8 +24,12 @@
   },
   "entity": {
     "sensor": {
-      "firmware": { "name": "Firmware version" },
-      "gateway": { "name": "Gateway connection" }
+      "firmware": {
+        "name": "Firmware version"
+      },
+      "gateway": {
+        "name": "Gateway connection"
+      }
     }
   }
 }

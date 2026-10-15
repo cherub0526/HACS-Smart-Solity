@@ -9,7 +9,7 @@
           "password": "密碼"
         },
         "data_description": {
-          "password": "你的 Smart Solity App 登入密碼（6 位數 PIN，例如 042636）。"
+          "password": "你的 Smart Solity 帳號密碼（第一次登入／註冊時設定的），不是 app 鎖定用的 6 位數 PIN。"
         }
       }
     },
@@ -24,8 +24,12 @@
   },
   "entity": {
     "sensor": {
-      "firmware": { "name": "韌體版本" },
-      "gateway": { "name": "閘道器連線" }
+      "firmware": {
+        "name": "韌體版本"
+      },
+      "gateway": {
+        "name": "閘道器連線"
+      }
     }
   }
 }
