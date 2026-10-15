@@ -15,18 +15,18 @@ AWS IoT connection. This integration does the same.
 This repo is not in the HACS default store, so add it as a **custom repository**:
 
 1. HACS → ⋮ (top-right) → **Custom repositories**.
-2. Repository: `https://github.com/OWNER/smart-solity-ha` — Category: **Integration** → **Add**.
+2. Repository: `https://github.com/cherub0526/HACS-Smart-Solity` — Category: **Integration** → **Add**.
 3. Find **Smart Solity** in HACS → **Download**.
 4. **Restart Home Assistant**.
 5. Settings → Devices & Services → **Add Integration** → "Smart Solity".
 6. Enter the same email + password you use in the Smart Solity app.
 
 You can also open HACS pre-filled with:
-[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=OWNER&repository=smart-solity-ha&category=integration)
+[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cherub0526&repository=HACS-Smart-Solity&category=integration)
 
 ## Install manually
 
-1. Copy `custom_components/smart_solity/` into your HA `config/custom_components/`.
+1. Copy `custom_components/3elock/` into your HA `config/custom_components/`.
 2. Restart Home Assistant.
 3. Settings → Devices & Services → **Add Integration** → "Smart Solity".
 4. Enter the same email + password you use in the Smart Solity app.

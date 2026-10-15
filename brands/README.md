@@ -10,7 +10,7 @@ The app icon (extracted from the official app, `icon.png`, 512×512) has been
 prepared here at the required sizes:
 
 ```
-brands/custom_integrations/smart_solity/
+brands/custom_integrations/3elock/
 ├── icon.png       256×256
 ├── icon@2x.png    512×512
 ├── logo.png       256×256
@@ -20,7 +20,7 @@ brands/custom_integrations/smart_solity/
 ## To make the icon appear in Home Assistant
 
 1. Fork `home-assistant/brands`.
-2. Copy `custom_integrations/smart_solity/` into the fork's
+2. Copy `custom_integrations/3elock/` into the fork's
    `custom_integrations/` directory (same path).
 3. Open a pull request. Once merged, HA fetches it automatically; the icon
    appears after the next brands CDN refresh (no integration update needed).

@@ -1,0 +1,28 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "小島3E",
+        "description": "請使用你的 Smart Solity 帳號登入。",
+        "data": {
+          "email": "電子郵件",
+          "password": "密碼"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "電子郵件或密碼錯誤。",
+      "cannot_connect": "無法連線到 Smart Solity 伺服器。",
+      "unknown": "發生未預期的錯誤。"
+    },
+    "abort": {
+      "already_configured": "此帳號已設定過。"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "firmware": { "name": "韌體版本" },
+      "gateway": { "name": "閘道器連線" }
+    }
+  }
+}

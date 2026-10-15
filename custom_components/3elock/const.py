@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-DOMAIN = "smart_solity"
+DOMAIN = "3elock"
 
 # Production backend (assets/config.json -> API_URL). ":443" implied by https.
 BASE_URL = "https://www.smartsolity.com"

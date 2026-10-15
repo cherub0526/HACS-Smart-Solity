@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Smart Solity",
+        "title": "3elock",
         "description": "Sign in with your Smart Solity account.",
         "data": {
           "email": "Email",
