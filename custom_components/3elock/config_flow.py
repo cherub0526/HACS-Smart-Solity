@@ -11,6 +11,10 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -24,6 +28,28 @@ from .api import (
     SmartSolityDevice,
 )
 from .const import DOMAIN
+
+CONF_MODE = "login_mode"
+MODE_PIN = "pin"
+MODE_EMAIL = "email"
+
+# Labels are inline (not from translations) so the choice is always visible,
+# even if the frontend has cached stale translation files.
+MODE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_MODE, default=MODE_PIN): SelectSelector(
+            SelectSelectorConfig(
+                mode=SelectSelectorMode.LIST,
+                options=[
+                    SelectOptionDict(value=MODE_PIN, label="6 位數 PIN (6-digit PIN)"),
+                    SelectOptionDict(
+                        value=MODE_EMAIL, label="Email + 密碼 (Email + password)"
+                    ),
+                ],
+            )
+        ),
+    }
+)
 
 PIN_SCHEMA = vol.Schema(
     {
@@ -86,8 +112,12 @@ class SmartSolityConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Let the user pick a login method."""
-        return self.async_show_menu(step_id="user", menu_options=["pin", "email"])
+        """Let the user pick a login method (inline-labelled select)."""
+        if user_input is not None:
+            if user_input[CONF_MODE] == MODE_EMAIL:
+                return await self.async_step_email()
+            return await self.async_step_pin()
+        return self.async_show_form(step_id="user", data_schema=MODE_SCHEMA)
 
     async def async_step_pin(
         self, user_input: dict[str, Any] | None = None

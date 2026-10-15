@@ -3,9 +3,9 @@
     "step": {
       "user": {
         "title": "3elock",
-        "menu_options": {
-          "pin": "6-digit PIN",
-          "email": "Email + password"
+        "description": "Choose how to sign in.",
+        "data": {
+          "login_mode": "Login method"
         }
       },
       "pin": {

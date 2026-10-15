@@ -3,9 +3,9 @@
     "step": {
       "user": {
         "title": "小島3E",
-        "menu_options": {
-          "pin": "6 位數 PIN",
-          "email": "Email + 密碼"
+        "description": "選擇登入方式。",
+        "data": {
+          "login_mode": "登入方式"
         }
       },
       "pin": {
